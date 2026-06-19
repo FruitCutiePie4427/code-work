@@ -3,125 +3,269 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>心率紀錄系統</title>
+    <title>心率紀錄系統 - 科技儀表板</title>
     <style>
         :root {
-            --primary: #4a90e2;
-            --danger: #e04b4b;
-            --success: #2ecc71;
-            --bg: #f5f7fa;
-            --card-bg: #ffffff;
-            --text: #333333;
+            /* 核心：高級冷灰色調家族 */
+            --bg-dark: #0f172a;       /* 深沉暗灰藍底色 */
+            --card-bg: #1e293b;     /* 卡片深灰色 */
+            --border-color: #334155;/* 邊框中灰色 */
+            --border-subtle: #273549;/* 更細緻的表格線條 */
+            --text-main: #f8fafc;   /* 主要文字：冷白 */
+            --text-muted: #94a3b8;  /* 提示文字：中灰 */
+            --text-dark: #64748b;   /* 深灰（用於後期冷卻數據） */
+            
+            /* 唯一核心亮點：保持你的螢光藍紀錄按鈕 */
+            --neon-blue: #00f0ff;   
+            --neon-blue-hover: #00d8e6;
+            --danger-dim: rgba(239, 68, 68, 0.2); /* 低調的刪除按鈕邊框 */
+            --danger-text: #f87171;
         }
+        
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
+            background-color: var(--bg-dark);
+            color: var(--text-main);
             margin: 0;
-            padding: 20px;
+            padding: 40px 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
+            min-height: 100vh;
         }
+        
         .container {
             width: 100%;
-            max-width: 950px;
+            max-width: 1000px;
         }
-        h1, h2 {
+        
+        h1 {
             text-align: center;
-            color: #2c3e50;
+            color: var(--text-main);
+            font-size: 2.2rem;
+            font-weight: 800;
+            margin-bottom: 5px;
+            letter-spacing: 1px;
+            text-shadow: 0 0 20px rgba(248, 250, 252, 0.05);
         }
+        
+        h2 {
+            color: var(--text-main);
+            border-left: 3px solid var(--neon-blue);
+            padding-left: 10px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-top: 0;
+            margin-bottom: 25px;
+            letter-spacing: 0.5px;
+        }
+        
+        .status-message {
+            text-align: center;
+            font-weight: 600;
+            color: var(--neon-blue);
+            background-color: rgba(0, 240, 255, 0.06);
+            border: 1px solid rgba(0, 240, 255, 0.15);
+            padding: 8px 24px;
+            border-radius: 30px;
+            margin: 0 auto 30px auto;
+            display: inline-block;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+        
         .card {
             background: var(--card-bg);
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            margin-bottom: 25px;
+            padding: 30px;
+            border-radius: 14px;
+            margin-bottom: 30px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.25);
         }
+        
         .form-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
         }
+        
         .form-group {
             display: flex;
             flex-direction: column;
         }
+        
         label {
-            font-size: 0.9rem;
-            font-weight: bold;
-            margin-bottom: 5px;
-            color: #555;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
         }
+        
         input {
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            font-size: 1rem;
+            padding: 12px 16px;
+            border: 1.5px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            color: var(--text-main);
+            background-color: rgba(15, 23, 42, 0.5);
+            transition: all 0.2s ease;
         }
+        
+        input:focus {
+            outline: none;
+            border-color: var(--text-muted);
+            background-color: rgba(15, 23, 42, 0.8);
+        }
+        
         .btn-group {
             display: flex;
-            gap: 10px;
+            gap: 15px;
             justify-content: flex-end;
+            border-top: 1px solid var(--border-subtle);
+            padding-top: 25px;
         }
+        
         button {
-            padding: 12px 24px;
+            padding: 12px 32px;
             border: none;
-            border-radius: 5px;
-            font-size: 1rem;
+            border-radius: 8px;
+            font-size: 0.95rem;
             cursor: pointer;
-            font-weight: bold;
-            transition: opacity 0.2s;
+            font-weight: 700;
+            transition: all 0.2s ease;
+            letter-spacing: 0.5px;
         }
-        button:hover { opacity: 0.9; }
-        button:disabled { opacity: 0.5; cursor: not-allowed; }
-        .btn-save { background-color: var(--success); color: white; }
-        .btn-clear { background-color: #95a5a6; color: white; }
-        .btn-delete { background-color: var(--danger); color: white; padding: 6px 12px; font-size: 0.85rem; }
+        
+        button:disabled { opacity: 0.3; cursor: not-allowed; }
+        
+        /* 💡 核心亮點：保留你想要的螢光藍紀錄按鈕 */
+        .btn-save {
+            background-color: var(--neon-blue);
+            color: #000000;
+            box-shadow: 0 4px 15px rgba(0, 240, 255, 0.25);
+        }
+        
+        .btn-save:hover:not(:disabled) {
+            background-color: var(--neon-blue-hover);
+            box-shadow: 0 4px 20px rgba(0, 240, 255, 0.4);
+            transform: translateY(-1px);
+        }
+        
+        .btn-clear {
+            background-color: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
+        }
+        
+        .btn-clear:hover:not(:disabled) {
+            background-color: rgba(148, 163, 184, 0.08);
+            color: var(--text-main);
+        }
+        
+        .btn-delete {
+            background-color: transparent;
+            color: var(--text-muted);
+            padding: 5px 12px;
+            font-size: 0.8rem;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .btn-delete:hover {
+            border-color: var(--danger-text);
+            color: var(--danger-text);
+            background-color: rgba(239, 68, 68, 0.05);
+        }
         
         .table-responsive {
             overflow-x: auto;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            background-color: rgba(15, 23, 42, 0.2);
         }
+        
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 10px;
-            background: white;
-        }
-        th, td {
-            padding: 12px;
             text-align: left;
-            border-bottom: 1px solid #ddd;
+            font-size: 0.95rem;
         }
-        th { background-color: #f2f2f2; font-weight: bold; }
-        tr:hover { background-color: #f9f9f9; }
         
-        .status-message {
-            text-align: center;
-            font-weight: bold;
-            color: var(--primary);
-            margin-bottom: 15px;
-            min-height: 20px;
+        th, td {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        
+        th {
+            background-color: rgba(15, 23, 42, 0.6);
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+        
+        /* 輕微的斑馬紋：維持同色系，僅做微小亮暗對比 */
+        tr:nth-child(even) td {
+            background-color: rgba(30, 41, 59, 0.2);
+        }
+        
+        tr:last-child td { border-bottom: none; }
+        
+        tr:hover td {
+            background-color: rgba(51, 65, 85, 0.3) !important;
+        }
+
+        /* 💡 精緻數據欄位變化（維持一致灰色調） */
+        .cell-rest {
+            background-color: rgba(148, 163, 184, 0.1);
+            color: var(--text-muted);
+            padding: 4px 10px;
+            border-radius: 5px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        
+        /* 即刻心率：最亮、最粗，帶有微弱的白光質感 */
+        .cell-hr0 {
+            color: var(--text-main);
+            font-weight: 800;
+            text-shadow: 0 0 8px rgba(248, 250, 252, 0.3);
+        }
+        
+        /* 隨著時間拉長，數值灰色逐漸變深（模擬心率冷卻與淡出） */
+        .cell-hr30 { color: #e2e8f0; font-weight: 600; }
+        .cell-hr60 { color: #cbd5e1; font-weight: 500; }
+        .cell-hr90 { color: #94a3b8; font-weight: 500; }
+        .cell-hr120 { color: #64748b; font-weight: 600; } /* 120秒恢復最深沉平靜的灰色 */
+
+        .unit {
+            font-size: 0.75rem; 
+            color: var(--text-dark);
+            margin-left: 2px;
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>💓 心率紀錄系統</h1>
-    <div id="status" class="status-message">正在從雲端載入資料...</div>
+    <h1>⚡ 心率復原監測面板</h1>
+    <div style="text-align: center;">
+        <div id="status" class="status-message">正在連結核心數據庫...</div>
+    </div>
 
     <div class="card">
-        <h2>數據登記處</h2>
+        <h2>數據輸入終端</h2>
         <form id="hrForm">
             <div class="form-grid">
                 <div class="form-group">
-                    <label for="exercise">做了什麼運動</label>
-                    <input type="text" id="exercise" required placeholder="例如：跑步、重訓">
+                    <label for="exercise">運動項目 / 情境</label>
+                    <input type="text" id="exercise" required placeholder="例如：高強度間歇、深蹲">
                 </div>
                 <div class="form-group">
-                    <label for="datetime">運動日期時間</label>
+                    <label for="datetime">時間戳記</label>
                     <input type="datetime-local" id="datetime" required>
                 </div>
                 <div class="form-group">
@@ -150,14 +294,14 @@
                 </div>
             </div>
             <div class="btn-group">
-                <button type="button" class="btn-clear" id="btnClear">清空表單</button>
-                <button type="submit" class="btn-save" id="btnSave">儲存紀錄</button>
+                <button type="button" class="btn-clear" id="btnClear">清空輸入</button>
+                <button type="submit" class="btn-save" id="btnSave">儲存紀錄 📂</button>
             </div>
         </form>
     </div>
 
     <div class="card">
-        <h2>已完成紀錄數據列表</h2>
+        <h2>歷史監測數據日誌</h2>
         <div class="table-responsive">
             <table>
                 <thead>
@@ -180,7 +324,6 @@
 </div>
 
 <script>
-    // 🔗 已經放入你剛剛生成的最新第 3 版網址了！
     const API_URL = 'https://script.google.com/macros/s/AKfycbyevlJc8_HXtuucjCyEeTjvo2A69LvgMeBOYKq7KoCM_YdFUJCqCxichJWzDMofZPNRAg/exec';
 
     const hrForm = document.getElementById('hrForm');
@@ -205,42 +348,50 @@
 
     function showStatus(msg, isError = false) {
         statusDiv.innerText = msg;
-        statusDiv.style.color = isError ? 'var(--danger)' : 'var(--primary)';
+        if(isError) {
+            statusDiv.style.backgroundColor = 'rgba(239, 68, 68, 0.08)';
+            statusDiv.style.borderColor = 'rgba(239, 68, 68, 0.15)';
+            statusDiv.style.color = '#ef4444';
+        } else {
+            statusDiv.style.backgroundColor = 'rgba(0, 240, 255, 0.06)';
+            statusDiv.style.borderColor = 'rgba(0, 240, 255, 0.15)';
+            statusDiv.style.color = 'var(--neon-blue)';
+        }
     }
 
     function fetchRecords() {
-        showStatus('正在同步雲端資料...');
+        showStatus('正在同步雲端核心數據...');
         fetch(API_URL)
             .then(res => res.json())
             .then(data => {
                 renderTable(data);
-                showStatus('資料同步完成');
+                showStatus('數據庫同步完畢 ✨');
             })
             .catch(err => {
                 console.error(err);
-                showStatus('讀取資料失敗，請檢查 API 設定', true);
+                showStatus('數據鏈結失敗，請檢查網路 ❌', true);
             });
     }
 
     function renderTable(records) {
         tableBody.innerHTML = '';
         if (records.length === 0) {
-            tableBody.innerHTML = `<tr><td colspan="9" style="text-align:center; color:#999;">目前暫無紀錄</td></tr>`;
+            tableBody.innerHTML = `<tr><td colspan="9" style="text-align:center; color:var(--text-muted);">目前無任何日誌紀錄資料</td></tr>`;
             return;
         }
         
         records.reverse().forEach(row => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td>${formatDate(row.datetime)}</td>
-                <td>${escapeHtml(row.exercise)}</td>
-                <td style="color: #666; font-weight: bold;">${row.hrRest ? row.hrRest + ' BPM' : '--'}</td>
-                <td style="color: var(--danger); font-weight: bold;">${row.hr0} BPM</td>
-                <td>${row.hr30} BPM</td>
-                <td>${row.hr60} BPM</td>
-                <td>${row.hr90} BPM</td>
-                <td>${row.hr120} BPM</td>
-                <td><button class="btn-delete" onclick="deleteRecord('${row.id}')">刪除</button></td>
+                <td style="font-weight: 500; color: var(--text-dark);">${formatDate(row.datetime)}</td>
+                <td style="font-weight: 600; color: var(--text-main);">${escapeHtml(row.exercise)}</td>
+                <td><span class="cell-rest">${row.hrRest ? row.hrRest : '--'}<span class="unit">BPM</span></span></td>
+                <td><span class="cell-hr0">${row.hr0}</span><span class="unit">BPM</span></td>
+                <td><span class="cell-hr30">${row.hr30}</span><span class="unit">BPM</span></td>
+                <td><span class="cell-hr60">${row.hr60}</span><span class="unit">BPM</span></td>
+                <td><span class="cell-hr90">${row.hr90}</span><span class="unit">BPM</span></td>
+                <td><span class="cell-hr120">${row.hr120}</span><span class="unit">BPM</span></td>
+                <td><button class="btn-delete" onclick="deleteRecord('${row.id}')">移除</button></td>
             `;
             tableBody.appendChild(tr);
         });
@@ -263,7 +414,7 @@
         };
 
         setLoading(true);
-        showStatus('正在儲存紀錄至雲端...');
+        showStatus('正在將數據寫入雲端矩陣...');
 
         fetch(API_URL, {
             method: 'POST',
@@ -272,7 +423,7 @@
         .then(res => res.json())
         .then(res => {
             if(res.status === 'success') {
-                showStatus('紀錄儲存成功！');
+                showStatus('數據上傳完成！🎉');
                 hrForm.reset();
                 const now = new Date();
                 now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
@@ -282,15 +433,15 @@
         })
         .catch(err => {
             console.error(err);
-            showStatus('儲存失敗，請重試', true);
+            showStatus('上傳失敗，寫入中斷 ⚠️', true);
         })
         .finally(() => setLoading(false));
     });
 
     window.deleteRecord = function(id) {
-        if (!confirm('確定要刪除這筆心率紀錄嗎？此操作會同步刪除雲端資料。')) return;
+        if (!confirm('確定要移除這筆日誌紀錄嗎？此操作將永久抹除試算表數據。')) return;
 
-        showStatus('正在從雲端刪除紀錄...');
+        showStatus('正在發送數據抹除指令...');
         
         fetch(API_URL, {
             method: 'POST',
@@ -299,18 +450,18 @@
         .then(res => res.json())
         .then(res => {
             if(res.status === 'success') {
-                showStatus('紀錄刪除成功！');
+                showStatus('數據抹除完畢。');
                 fetchRecords();
             }
         })
         .catch(err => {
             console.error(err);
-            showStatus('刪除失敗，請重試', true);
+            showStatus('刪除指令執行失敗', true);
         });
     };
 
     btnClear.addEventListener('click', () => {
-        if(confirm('確定要清空目前輸入的內容嗎？')) {
+        if(confirm('確定要清除終端目前輸入的暫存內容嗎？')) {
             hrForm.reset();
         }
     });
