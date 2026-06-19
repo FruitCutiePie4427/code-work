@@ -1,0 +1,336 @@
+HTML
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>心率紀錄系統</title>
+    <style>
+        :root {
+            --primary: #4a90e2;
+            --danger: #e04b4b;
+            --success: #2ecc71;
+            --bg: #f5f7fa;
+            --card-bg: #ffffff;
+            --text: #333333;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 900px;
+        }
+        h1, h2 {
+            text-align: center;
+            color: #2c3e50;
+        }
+        .card {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 25px;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #555;
+        }
+        input {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            font-weight: bold;
+            transition: opacity 0.2s;
+        }
+        button:hover { opacity: 0.9; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-save { background-color: var(--success); color: white; }
+        .btn-clear { background-color: #95a5a6; color: white; }
+        .btn-delete { background-color: var(--danger); color: white; padding: 6px 12px; font-size: 0.85rem; }
+        
+        .table-responsive {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            background: white;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th { background-color: #f2f2f2; font-weight: bold; }
+        tr:hover { background-color: #f9f9f9; }
+        
+        .status-message {
+            text-align: center;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 15px;
+            min-height: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>💓 心率紀錄系統</h1>
+    <div id="status" class="status-message">正在從雲端載入資料...</div>
+
+    <div class="card">
+        <h2>數據登記處</h2>
+        <form id="hrForm">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="exercise">做了什麼運動</label>
+                    <input type="text" id="exercise" required placeholder="例如：跑步、重訓">
+                </div>
+                <div class="form-group">
+                    <label for="datetime">運動日期時間</label>
+                    <input type="datetime-local" id="datetime" required>
+                </div>
+                <div class="form-group">
+                    <label for="hr0">當下即刻心率 (BPM)</label>
+                    <input type="number" id="hr0" required min="30" max="220">
+                </div>
+                <div class="form-group">
+                    <label for="hr30">30秒心率 (BPM)</label>
+                    <input type="number" id="hr30" required min="30" max="220">
+                </div>
+                <div class="form-group">
+                    <label for="hr60">60秒心率 (BPM)</label>
+                    <input type="number" id="hr60" required min="30" max="220">
+                </div>
+                <div class="form-group">
+                    <label for="hr90">90秒心率 (BPM)</label>
+                    <input type="number" id="hr90" required min="30" max="220">
+                </div>
+                <div class="form-group">
+                    <label for="hr120">120秒心率 (BPM)</label>
+                    <input type="number" id="hr120" required min="30" max="220">
+                </div>
+            </div>
+            <div class="btn-group">
+                <button type="button" class="btn-clear" id="btnClear">清空表單</button>
+                <button type="submit" class="btn-save" id="btnSave">儲存紀錄</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="card">
+        <h2>已完成紀錄數據列表</h2>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>日期時間</th>
+                        <th>運動項目</th>
+                        <th>即刻</th>
+                        <th>30秒</th>
+                        <th>60秒</th>
+                        <th>90秒</th>
+                        <th>120秒</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="recordTableBody">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ⚠️ 請將下方網址替換為你部署好的 Google Apps Script Web App URL
+    const API_URL = 'https://script.google.com/macros/s/AKfycbx9LZG3ZbxZj-sO6jqOEgaDrHn1jiRq2kJcokoa40-5VpYvBZsSMCha5-8ndMQpl0Cz3w/exec';
+
+    const hrForm = document.getElementById('hrForm');
+    const tableBody = document.getElementById('recordTableBody');
+    const statusDiv = document.getElementById('status');
+    const btnClear = document.getElementById('btnClear');
+    const btnSave = document.getElementById('btnSave');
+
+    // 初始化：將時間輸入框預設為當前時間
+    window.addEventListener('DOMContentLoaded', () => {
+        const now = new Date();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        document.getElementById('datetime').value = now.toISOString().slice(0, 16);
+        fetchRecords();
+    });
+
+    // 格式化 Google 傳回的日期字串
+    function formatDate(dateStr) {
+        if (!dateStr) return '';
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return dateStr; 
+        return d.toLocaleString('zh-TW', { hour12: false }).slice(0, 16);
+    }
+
+    // 顯示提示訊息
+    function showStatus(msg, isError = false) {
+        statusDiv.innerText = msg;
+        statusDiv.style.color = isError ? 'var(--danger)' : 'var(--primary)';
+    }
+
+    // 從 Google 試算表讀取資料
+    function fetchRecords() {
+        showStatus('正在同步雲端資料...');
+        fetch(API_URL)
+            .then(res => res.json())
+            .then(data => {
+                renderTable(data);
+                showStatus('資料同步完成');
+            })
+            .catch(err => {
+                console.error(err);
+                showStatus('讀取資料失敗，請檢查 API 設定', true);
+            });
+    }
+
+    // 渲染表格
+    function renderTable(records) {
+        tableBody.innerHTML = '';
+        if (records.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:#999;">目前暫無紀錄</td></tr>`;
+            return;
+        }
+        
+        // 倒序排列，讓最新的紀錄顯示在最上面
+        records.reverse().forEach(row => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${formatDate(row.datetime)}</td>
+                <td>${escapeHtml(row.exercise)}</td>
+                <td>${row.hr0} BPM</td>
+                <td>${row.hr30} BPM</td>
+                <td>${row.hr60} BPM</td>
+                <td>${row.hr90} BPM</td>
+                <td>${row.hr120} BPM</td>
+                <td><button class="btn-delete" onclick="deleteRecord('${row.id}')">刪除</button></td>
+            `;
+            tableBody.appendChild(tr);
+        });
+    }
+
+    // 提交表單（儲存紀錄）
+    hrForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        
+        const record = {
+            action: 'create',
+            id: 'ID_' + Date.now(), // 產生隨機唯一識別碼
+            datetime: document.getElementById('datetime').value.replace('T', ' '),
+            exercise: document.getElementById('exercise').value,
+            hr0: document.getElementById('hr0').value,
+            hr30: document.getElementById('hr30').value,
+            hr60: document.getElementById('hr60').value,
+            hr90: document.getElementById('hr90').value,
+            hr120: document.getElementById('hr120').value
+        };
+
+        setLoading(true);
+        showStatus('正在儲存紀錄至雲端...');
+
+        // 使用不帶 Content-Type 的方式發送，可完美繞過 GAS 的 CORS 限制
+        fetch(API_URL, {
+            method: 'POST',
+            body: JSON.stringify(record)
+        })
+        .then(res => res.json())
+        .then(res => {
+            if(res.status === 'success') {
+                showStatus('紀錄儲存成功！');
+                hrForm.reset();
+                // 重新預設當前時間
+                const now = new Date();
+                now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+                document.getElementById('datetime').value = now.toISOString().slice(0, 16);
+                fetchRecords(); // 重新整理列表
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            showStatus('儲存失敗，請重試', true);
+        })
+        .finally(() => setLoading(false));
+    });
+
+    // 刪除單筆紀錄
+    window.deleteRecord = function(id) {
+        if (!confirm('確定要刪除這筆心率紀錄嗎？此操作會同步刪除雲端資料。')) return;
+
+        showStatus('正在從雲端刪除紀錄...');
+        
+        fetch(API_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'delete', id: id })
+        })
+        .then(res => res.json())
+        .then(res => {
+            if(res.status === 'success') {
+                showStatus('紀錄刪除成功！');
+                fetchRecords();
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            showStatus('刪除失敗，請重試', true);
+        });
+    };
+
+    // 清空按鈕功能
+    btnClear.addEventListener('click', () => {
+        if(confirm('確定要清空目前輸入的內容嗎？')) {
+            hrForm.reset();
+        }
+    });
+
+    // 防止重複點擊
+    function setLoading(loading) {
+        btnSave.disabled = loading;
+        btnClear.disabled = loading;
+    }
+
+    // XSS 防禦小工具
+    function escapeHtml(str) {
+        return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+</script>
+</body>
+</html>
